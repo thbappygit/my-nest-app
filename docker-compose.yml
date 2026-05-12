@@ -1,0 +1,66 @@
+version: '3.9'
+
+services:
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: nest_app
+    restart: unless-stopped
+    ports:
+      - '3000:3000'
+    volumes:
+      - .:/app
+      - /app/node_modules
+    command: npm run start:dev
+    depends_on:
+      - postgres
+      - redis
+    env_file:
+      - .env
+    networks:
+      - nest_network
+
+  postgres:
+    image: postgres:16
+    container_name: nest_postgres
+    restart: unless-stopped
+    ports:
+      - '5432:5432'
+    environment:
+      POSTGRES_USER: nestuser
+      POSTGRES_PASSWORD: nestpass
+      POSTGRES_DB: nestdb
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    networks:
+      - nest_network
+
+  redis:
+    image: redis:7
+    container_name: nest_redis
+    restart: unless-stopped
+    ports:
+      - '6379:6379'
+    networks:
+      - nest_network
+
+  pgadmin:
+    image: dpage/pgadmin4
+    container_name: nest_pgadmin
+    restart: unless-stopped
+    ports:
+      - '8080:80'
+    environment:
+      PGADMIN_DEFAULT_EMAIL: admin@example.com
+      PGADMIN_DEFAULT_PASSWORD: admin123
+    depends_on:
+      - postgres
+    networks:
+      - nest_network
+
+volumes:
+  postgres_data:
+
+networks:
+  nest_network:
